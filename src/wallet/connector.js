@@ -2,7 +2,14 @@ import WalletConnect from '@walletconnect/client';
 
 const GET_ACCOUNTS = {
   id: 6,
+  jsonrpc: '2.0',
   method: 'get_accounts'
+};
+
+const GET_SIGN = {
+  id:8,
+  jsonrpc: '2.0',
+  method: 'okt_signTransaction'
 };
 
 const OKEXCHAIN = 'okexchain';
@@ -17,8 +24,7 @@ class Connector {
     this.walletConnector = null;
     this.session = '';
     this.account = null;
-    this.success = null;
-    this.error = null;
+    this.address = '';
     this.callback = {};
   }
 
@@ -52,13 +58,8 @@ class Connector {
   
   async getAccounts() {
     const walletConnector = this.walletConnector;
-    const customRequest = {
-      id: GET_ACCOUNTS.id,
-      jsonrpc: '2.0',
-      method: GET_ACCOUNTS.method,
-    };
     return new Promise((resolve,reject) => {
-      walletConnector.sendCustomRequest(customRequest).then((res) => {
+      walletConnector.sendCustomRequest(GET_ACCOUNTS).then((res) => {
         const okexchainAccount = res.find((account) => {
           return account.address.startsWith(OKEXCHAIN);
         });
@@ -92,12 +93,19 @@ class Connector {
       this.onConnect(payload);
     });
 
-    walletConnector.on('disconnect', (error) => {
+    walletConnector.on('disconnect', (error, payload) => {
       console.log('disconnect', payload);
       if (error) {
         throw error;
       }
       this.onDisconnect();
+    });
+
+    walletConnector.on('session_request',(error, payload) => {
+      console.log('session_request', payload);
+      if (error) {
+        throw error;
+      }
     });
 
     if (walletConnector.connected) {
@@ -113,6 +121,8 @@ class Connector {
     const walletConnector = new WalletConnect({ bridge });
     this.walletConnector = walletConnector;
 
+    this.subscribeToEvents();
+
     if (!walletConnector.connected) {
       if (disConnectedCallback) {
         disConnectedCallback();
@@ -123,17 +133,18 @@ class Connector {
       // get uri for QR Code modal
       const uri = walletConnector.uri;
       this.session = uri;
+    } else {
+      await this.getAccounts();
     }
-
-    this.subscribeToEvents();
   }
 
-  killSession() {
+  killSession(callback) {
     const walletConnector = this.walletConnector;
     if (walletConnector && walletConnector.connected) {
       walletConnector.killSession();
     }
-    this.doCallback('sessionCancel');
+    if(callback) callback();
+    else this.doCallback('sessionCancel');
     this.resetConnector();
   }
 

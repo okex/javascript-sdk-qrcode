@@ -7,7 +7,7 @@
 import * as crypto from "./crypto"
 import Transaction from "./transaction"
 import HttpProxy from "./httpProxy"
-import wallet from './wallet'
+import * as wallet from './wallet'
 
 const defaultChainId = "okexchain-66"
 const defaultRelativePath = "/okexchain/v1"
