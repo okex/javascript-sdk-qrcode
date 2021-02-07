@@ -17,7 +17,7 @@ export function getAddress() {
 }
 
 export function sign(signMsg) {
-  
+  return connector.sign(signMsg);
 }
 
 

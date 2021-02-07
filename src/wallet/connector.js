@@ -171,6 +171,14 @@ class Connector {
     return session;
   }
 
+  async sign(signMsg) {
+    return new Promise((resolve,reject) => {
+      this.walletConnector.sendCustomRequest(GET_SIGN).then((res) => {
+        console.log(signMsg,res);
+        resolve();
+      }).catch(reject);
+    });
+  }
 }
 
 export default new Connector();
