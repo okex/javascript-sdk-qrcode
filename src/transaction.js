@@ -82,8 +82,9 @@ class Transaction {
       accountNumber:this.account_number.toString(),
       sequenceNumber:this.sequence.toString(),
       value: '0',
-      gasLimit: '0',
-      gasPrice: '0'
+      gasLimit: this.fee.gas,
+      gasPrice: this.fee.amount[0].amount,
+      data: msg
     }
 
     console.log("signmsg: ",JSON.stringify(signMsg))
