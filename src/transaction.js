@@ -84,7 +84,7 @@ class Transaction {
       value: '0',
       gasLimit: this.fee.gas,
       gasPrice: this.fee.amount[0].amount,
-      data: msg
+      data: JSON.stringify(msg)
     }
 
     console.log("signmsg: ",JSON.stringify(signMsg))
