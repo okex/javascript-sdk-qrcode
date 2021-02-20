@@ -21,10 +21,11 @@ class Connector {
   }
 
   resetConnector() {
+    if(this.interval) clearInterval(this.interval);
     this.walletConnector = null;
-    this.session = '';
     this.account = null;
     this.address = '';
+    this.interval = null;
     this.callback = {};
   }
 
@@ -33,7 +34,7 @@ class Connector {
    */
   onSendSign(payload) {
     const { sign, timestamp } = payload.params[0];
-    // console.log(sign, timestamp);
+    console.log(sign, timestamp);
   }
 
   handleConnect(accounts) {
@@ -116,23 +117,22 @@ class Connector {
     this.walletConnector = walletConnector;
   }
 
-  async walletConnectInit(disConnectedCallback) {
+  async createSession() {
+    const walletConnector = this.walletConnector;
+    if(!walletConnector) return;
+    await walletConnector.createSession();
+  }
+
+  async walletConnectInit() {
     const bridge = 'https://onchainreal.bafang.com:8443';
     const walletConnector = new WalletConnect({ bridge });
     this.walletConnector = walletConnector;
 
     this.subscribeToEvents();
 
-    if (!walletConnector.connected) {
-      if (disConnectedCallback) {
-        disConnectedCallback();
-      }
-      // create new session
-      await walletConnector.createSession();
-
-      // get uri for QR Code modal
-      const uri = walletConnector.uri;
-      this.session = uri;
+    if (!walletConnector.connected || !walletConnector.uri) {
+      console.log('create session');
+      await this.createSession();
     } else {
       await this.getAccounts();
     }
@@ -160,12 +160,15 @@ class Connector {
     this.setCallback(callback);
     let session = '';
     try {
-      if(!this.walletConnector || !this.session) {
+      if(!this.walletConnector || !this.walletConnector.uri) {
         await this.walletConnectInit();
+        if(!this.interval) this.interval = setInterval(() => {
+          this.walletConnectInit();
+        },30*1000)
       }
-      session = this.session;
+      session = this.walletConnector.uri;
     } finally {
-      if(!session) this.doCallback('sessionFail');
+      if(!session) this.killSession();
       else this.doCallback('sessionSuccess');
     }
     return session;
