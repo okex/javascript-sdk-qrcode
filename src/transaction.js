@@ -75,9 +75,9 @@ class Transaction {
 
     const signMsg = {
       to: '',
-      symbol: '',
+      symbol: 'OKT',
       memo: this.memo,
-      contractAddress:'',
+      // contractAddress:'',
       decimalNum: '0',
       accountNumber:this.account_number.toString(),
       sequenceNumber:this.sequence.toString(),

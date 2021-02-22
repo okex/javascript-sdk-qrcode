@@ -29,14 +29,6 @@ class Connector {
     this.callback = {};
   }
 
-  /**
-   * 接受移动端定时推送的sign
-   */
-  onSendSign(payload) {
-    const { sign, timestamp } = payload.params[0];
-    console.log(sign, timestamp);
-  }
-
   handleConnect(accounts) {
     this.account = accounts[0];
   }
@@ -79,11 +71,10 @@ class Connector {
       return;
     }
     walletConnector.on('call_request', (error, payload) => {
-      console.log('call_request', payload);
+      console.log('call_request', payload, error);
       if (error) {
         throw error;
       }
-      this.onSendSign(payload);
     });
 
     walletConnector.on('connect', (error, payload) => {
@@ -96,10 +87,10 @@ class Connector {
 
     walletConnector.on('disconnect', (error, payload) => {
       console.log('disconnect', payload);
+      this.onDisconnect();
       if (error) {
         throw error;
       }
-      this.onDisconnect();
     });
 
     walletConnector.on('session_request',(error, payload) => {
@@ -176,10 +167,15 @@ class Connector {
 
   async sign(signMsg) {
     return new Promise((resolve,reject) => {
-      this.walletConnector.sendCustomRequest(GET_SIGN).then((res) => {
-        console.log(signMsg,res);
-        resolve();
-      }).catch(reject);
+      console.log('发送签名数据',JSON.stringify({...GET_SIGN,params:[signMsg]}));
+      this.walletConnector.sendCustomRequest({...GET_SIGN,params:[signMsg]}).then((res) => {
+        res = JSON.parse(res);
+        console.log(res);
+        resolve(res.tx.signatures);
+      }).catch(err => {
+        console.log('签名失败')
+        reject(err);
+      });
     });
   }
 }
