@@ -1,6 +1,6 @@
 {
   "name": "@okexchain/javascript-sdk-qrcode",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "Apache-2.0",
   "main": "lib/index.js",
   "scripts": {
