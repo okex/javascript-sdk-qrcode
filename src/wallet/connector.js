@@ -51,7 +51,11 @@ class Connector {
   
   async getAccounts() {
     const walletConnector = this.walletConnector;
+    if(!walletConnector) return '';
     return new Promise((resolve,reject) => {
+      setTimeout(() => {
+        if(!this.address) this.killSession();
+      }, 5000);
       walletConnector.sendCustomRequest(GET_ACCOUNTS).then((res) => {
         const okexchainAccount = res.find((account) => {
           return account.address.startsWith(OKEXCHAIN);
@@ -61,7 +65,10 @@ class Connector {
           this.address = address;
         }
         resolve(this.address);
-      }).catch(reject);
+      }).catch(err => {
+        this.killSession();
+        reject(err);
+      });
     });
   }
 
@@ -104,8 +111,6 @@ class Connector {
       const { accounts } = walletConnector;
       this.handleConnect(accounts);
     }
-
-    this.walletConnector = walletConnector;
   }
 
   async createSession() {
@@ -117,6 +122,8 @@ class Connector {
   async walletConnectInit() {
     const bridge = 'https://onchainreal.bafang.com:8443';
     const walletConnector = new WalletConnect({ bridge });
+    walletConnector._clientMeta.name = 'OKEx DEX';
+    console.log(walletConnector);
     this.walletConnector = walletConnector;
 
     this.subscribeToEvents();
@@ -153,9 +160,6 @@ class Connector {
     try {
       if(!this.walletConnector || !this.walletConnector.uri) {
         await this.walletConnectInit();
-        if(!this.interval) this.interval = setInterval(() => {
-          this.walletConnectInit();
-        },30*1000)
       }
       session = this.walletConnector.uri;
     } finally {

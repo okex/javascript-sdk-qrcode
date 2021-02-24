@@ -108,8 +108,10 @@ export class OKEXChainClient {
      * @return {OKEXChainClient}
      */
     async setAccountInfo(privateKey) {
-        if(!privateKey && wallet.getAddress()) {
-            await this.setAccountInfoByWallet(wallet.getAddress());
+        if(!privateKey) {
+            const address = await wallet.getAddress();
+            if (!address) throw new Error("invalid privateKey: " + privateKey)
+            await this.setAccountInfoByWallet(address);
             return this;
         }
         if (privateKey !== this.privateKey) {
