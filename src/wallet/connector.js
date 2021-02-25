@@ -1,13 +1,17 @@
 import WalletConnect from '@walletconnect/client';
 
 const GET_ACCOUNTS = {
-  id: 6,
+  get id() {
+    return Date.now();
+  },
   jsonrpc: '2.0',
   method: 'get_accounts'
 };
 
 const GET_SIGN = {
-  id:8,
+  get id() {
+    return Date.now();
+  },
   jsonrpc: '2.0',
   method: 'okt_signTransaction'
 };
@@ -52,24 +56,41 @@ class Connector {
   async getAccounts() {
     const walletConnector = this.walletConnector;
     if(!walletConnector) return '';
+    this.startTimer();
     return new Promise((resolve,reject) => {
-      setTimeout(() => {
-        if(!this.address) this.killSession();
+      let address = '', timer;
+      timer = setTimeout(() => {
+        if(!address) {
+          this.killSession();
+          console.log('获取address超时，将断开链接');
+        }
       }, 5000);
       walletConnector.sendCustomRequest(GET_ACCOUNTS).then((res) => {
         const okexchainAccount = res.find((account) => {
           return account.address.startsWith(OKEXCHAIN);
         });
         if (okexchainAccount) {
-          const { address } = okexchainAccount;
+          address = okexchainAccount.address;
           this.address = address;
         }
+        if(!address) throw new Error('get address failed');
         resolve(this.address);
       }).catch(err => {
+        console.log('获取address失败，将断开链接');
         this.killSession();
         reject(err);
+      }).finally(() => {
+        clearTimeout(timer);
       });
     });
+  }
+
+  async startTimer() {
+    if(this.startTimer.interval) return;
+    this.startTimer.interval = setInterval(() => {
+      console.log('get address');
+      this.getAccounts();
+    }, 5000);
   }
 
   async subscribeToEvents() {
