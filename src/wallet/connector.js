@@ -1,22 +1,18 @@
 import WalletConnect from '@walletconnect/client';
 
 const GET_ACCOUNTS = {
-  get id() {
-    return Date.now();
-  },
   jsonrpc: '2.0',
   method: 'get_accounts'
 };
 
 const GET_SIGN = {
-  get id() {
-    return Date.now();
-  },
   jsonrpc: '2.0',
   method: 'okt_signTransaction'
 };
 
 const OKEXCHAIN = 'okexchain';
+
+const DURING = 5000;
 
 class Connector {
 
@@ -61,11 +57,13 @@ class Connector {
       let address = '', timer;
       timer = setTimeout(() => {
         if(!address) {
-          this.killSession();
           console.log('获取address超时，将断开链接');
+          this.killSession();
         }
-      }, 5000);
-      walletConnector.sendCustomRequest(GET_ACCOUNTS).then((res) => {
+      }, DURING);
+      const params = {...GET_ACCOUNTS, id: Date.now()};
+      console.log('get address params: ' + JSON.stringify(params));
+      walletConnector.sendCustomRequest(params).then((res) => {
         const okexchainAccount = res.find((account) => {
           return account.address.startsWith(OKEXCHAIN);
         });
@@ -90,7 +88,7 @@ class Connector {
     this.startTimer.interval = setInterval(() => {
       console.log('get address');
       this.getAccounts();
-    }, 5000);
+    }, DURING);
   }
 
   async subscribeToEvents() {
@@ -184,7 +182,10 @@ class Connector {
       }
       session = this.walletConnector.uri;
     } finally {
-      if(!session) this.killSession();
+      if(!session) {
+        console.log('初始链接失败')
+        this.killSession();
+      }
       else this.doCallback('sessionSuccess');
     }
     return session;
@@ -192,8 +193,9 @@ class Connector {
 
   async sign(signMsg) {
     return new Promise((resolve,reject) => {
-      console.log('发送签名数据',JSON.stringify({...GET_SIGN,params:[signMsg]}));
-      this.walletConnector.sendCustomRequest({...GET_SIGN,params:[signMsg]}).then((res) => {
+      const params = {...GET_SIGN,params:[signMsg],id:Date.now()};
+      console.log('发送签名数据',JSON.stringify(params));
+      this.walletConnector.sendCustomRequest(params).then((res) => {
         res = JSON.parse(res);
         console.log(res);
         resolve(res.tx.signatures);
