@@ -139,7 +139,7 @@ class Connector {
   }
 
   async walletConnectInit() {
-    const bridge = 'https://onchainreal.bafang.com:8443';
+    const bridge = 'wss://bridge.walletconnect.org';
     const walletConnector = new WalletConnect({ bridge });
     walletConnector._clientMeta.name = 'OKEx DEX';
     console.log(walletConnector);
