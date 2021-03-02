@@ -12,7 +12,7 @@ const GET_SIGN = {
 
 const OKEXCHAIN = 'okexchain';
 
-const DURING = 5000;
+// const DURING = 5000;
 
 class Connector {
 
@@ -52,15 +52,15 @@ class Connector {
   async getAccounts() {
     const walletConnector = this.walletConnector;
     if(!walletConnector) return '';
-    this.startTimer();
+    // this.startTimer();
     return new Promise((resolve,reject) => {
-      let address = '', timer;
-      timer = setTimeout(() => {
-        if(!address) {
-          console.log('获取address超时，将断开链接');
-          this.killSession();
-        }
-      }, DURING);
+      let address = '';
+      // let timer = setTimeout(() => {
+      //   if(!address) {
+      //     console.log('获取address超时，将断开链接');
+      //     this.killSession();
+      //   }
+      // }, DURING);
       const params = {...GET_ACCOUNTS, id: Date.now()};
       console.log('get address params: ' + JSON.stringify(params));
       walletConnector.sendCustomRequest(params).then((res) => {
@@ -74,11 +74,11 @@ class Connector {
         if(!address) throw new Error('get address failed');
         resolve(this.address);
       }).catch(err => {
-        console.log('获取address失败，将断开链接');
-        this.killSession();
+        // console.log('获取address失败，将断开链接');
+        // this.killSession();
         reject(err);
       }).finally(() => {
-        clearTimeout(timer);
+        // clearTimeout(timer);
       });
     });
   }
