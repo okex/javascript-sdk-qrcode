@@ -141,8 +141,8 @@ class Connector {
   async walletConnectInit() {
     const bridge = 'wss://bridge.walletconnect.org';
     const walletConnector = new WalletConnect({ bridge });
-    walletConnector._clientMeta.name = 'OKEx DEX';
-    console.log(walletConnector);
+    walletConnector._clientMeta.name = 'ΟKEx DEX';
+    walletConnector._clientMeta.url = walletConnector._clientMeta.url.replace(/okex/i,'οkex');
     this.walletConnector = walletConnector;
 
     this.subscribeToEvents();
